@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import UserService from "../../services/UserService";
 import './AdminPanelComponent.css';
+import Constants from "../../../constants/Constants";
 
-const newUser ={
+const newUser = {
     id: 0,
     email: '',
     firstName: '',
@@ -11,6 +12,7 @@ const newUser ={
     lastName: '',
     password: ''
 };
+
 class AdminPanelComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -21,7 +23,13 @@ class AdminPanelComponent extends React.Component {
     state = {
         users: [],
         formGroup: {},
-        editDisabled: true
+        editDisabled: true,
+        errors: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: ''
+        }
     }
 
     componentDidMount() {
@@ -35,7 +43,7 @@ class AdminPanelComponent extends React.Component {
     }
 
     addNewUser() {
-        if (this.state.users.filter(u => u.id === 0).length > 0){
+        if (this.state.users.filter(u => u.id === 0).length > 0) {
             return;
         }
         this.state.users.push(newUser);
@@ -44,11 +52,29 @@ class AdminPanelComponent extends React.Component {
     }
 
     updateEdit() {
-        UserService.save(this.state.formGroup).then(()=>{
-            this.getUsers();
-            this.clearForm();
+        if (!this.validateForm()) {
+            return;
+        }
+
+        UserService.save(this.state.formGroup).then(() => {
+                this.getUsers();
+                this.clearForm();
             }
         );
+    }
+
+    validateForm() {
+        const validateFormErrors = (errors) => {
+            let valid = true;
+            Object.values(errors).forEach(
+                // if we have an error string set valid to false
+                (val) => val.length > 0 && (valid = false)
+            );
+            return valid;
+        }
+
+        return validateFormErrors;
+
     }
 
     cancelEdit() {
@@ -58,7 +84,7 @@ class AdminPanelComponent extends React.Component {
         this.clearForm();
     }
 
-    clearForm(){
+    clearForm() {
         this.buildForm(newUser);
         this.setState({editDisabled: true});
     }
@@ -78,31 +104,70 @@ class AdminPanelComponent extends React.Component {
     changeHandler = event => {
 
         const name = event.target.id;
-        let value = (event.target.type === 'checkbox'? event.target.checked : event.target.value);
+        let value = (event.target.type === 'checkbox' ? event.target.checked : event.target.value);
         const updatedControls = {
             ...this.state.formGroup
         };
 
-        if(name === 'isAdmin') {
+        if (name === 'isAdmin') {
             value = (value === "true");
         }
         updatedControls[name] = value;
 
+        this.validateField(name, value);
 
         this.setState({
             formGroup: updatedControls
         });
+
+    }
+
+    validateField(name, value) {
+        let errors = this.state.errors;
+        switch (name) {
+            case 'firstName':
+                errors.firstName = value.length <= 0 ? 'This field is required.' : (
+                    Constants.VALID_NAME_REGEX.test(value)
+                        ? ''
+                        : 'This field should only contain letters!')
+                ;
+                break;
+            case 'lastName':
+                errors.lastName = value.length <= 0 ? 'This field is required.' : (
+                    Constants.VALID_NAME_REGEX.test(value)
+                        ? ''
+                        : 'This field should only contain letters!');
+                break;
+            case 'password':
+                errors.password = value.length <= 0 ? 'This field is required.' : (
+                    Constants.VALID_PASSWORD_REGEX.test(value)
+                        ? ''
+                        : 'The password should contain minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character.');
+                break;
+            case 'email':
+                errors.email = value.length <= 0 ? 'This field is required.' : (
+                    Constants.VALID_EMAIL_REGEX.test(value)
+                        ? ''
+                        : 'This is not a valid email!');
+                break;
+            default:
+                break;
+        }
+
+        this.setState({errors, [name]: value}, () => {
+            console.log(errors)
+        })
     }
 
     onDeleteClick(id) {
-        UserService.delete(id).then(
-            this.getUsers()
-        )
+        UserService.delete(id).then(() => {
+            this.getUsers();
+        })
     }
 
     buildForm(user) {
         let formGroup = {
-            id:  user.id,
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
@@ -123,49 +188,59 @@ class AdminPanelComponent extends React.Component {
         return <tbody>
         {this.state.users.map((user, index) => <tr key={user.id}>
             <td scope="row">{index + 1}</td>
-            <td>
-                {(user.id === this.state.formGroup.id && !this.state.editDisabled)
-                    ? <input
-                        type="text"
-                        className="form-control"
-                        id="firstName"
-                        onChange={this.changeHandler}
-                        value={this.state.formGroup.firstName}/>
-                    : <span>{user.firstName}</span>
-                }
-            </td>
-            <td>
-                {(user.id === this.state.formGroup.id && !this.state.editDisabled)
-                    ? <input
-                        type="text"
-                        className="form-control"
-                        id="lastName"
-                        onChange={this.changeHandler}
-                        value={this.state.formGroup.lastName}/>
-                :<span>{user.lastName}</span>
-                }
 
-            </td>
-            <td>
-                {(user.id === this.state.formGroup.id && !this.state.editDisabled) ?
-                    <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        onChange={this.changeHandler}
-                        value={this.state.formGroup.email}/>
-                    : <span>{user.email}</span>}
-            </td>
-            <td>
-                {(user.id === this.state.formGroup.id && !this.state.editDisabled) ?
-                    <input
-                        type="password"
-                        className="form-control"
-                        id="password"
-                        onChange={this.changeHandler}
-                        value={this.state.formGroup.password}/>
-                    : <span>{this.formatPassword(user.password)}</span>}
-            </td>
+            {(user.id === this.state.formGroup.id && !this.state.editDisabled)
+                ? (<td><input
+                    type="text"
+                    className="form-control"
+                    id="firstName"
+                    onChange={this.changeHandler}
+                    value={this.state.formGroup.firstName}/>
+                    {this.state.errors.firstName.length > 0 &&
+                    <span className='text-danger'>{this.state.errors.firstName}</span>}</td>)
+                : <td><span>{user.firstName}</span></td>
+            }
+
+
+            {(user.id === this.state.formGroup.id && !this.state.editDisabled)
+                ? <td><input
+                    type="text"
+                    className="form-control"
+                    id="lastName"
+                    onChange={this.changeHandler}
+                    value={this.state.formGroup.lastName}/>
+                    {this.state.errors.lastName.length > 0 &&
+                    <span className='text-danger'>{this.state.errors.lastName}</span>}
+                </td>
+                : <td><span>{user.lastName}</span></td>
+            }
+
+
+            {(user.id === this.state.formGroup.id && !this.state.editDisabled) ?
+                <td><input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    onChange={this.changeHandler}
+                    value={this.state.formGroup.email}/>
+                    {this.state.errors.email.length > 0 &&
+                    <span className='text-danger'>{this.state.errors.email}</span>}
+                </td>
+                : <td><span>{user.email}</span></td>}
+
+
+            {(user.id === this.state.formGroup.id && !this.state.editDisabled) ?
+                <td><input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    onChange={this.changeHandler}
+                    value={this.state.formGroup.password}/>
+                    {this.state.errors.password.length > 0 &&
+                    <span className='text-danger'>{this.state.errors.password}</span>}</td>
+                : <td><span>{this.formatPassword(user.password)}</span></td>}
+
+
             <td className="justify-content-md-center">
                 {(user.id === this.state.formGroup.id && !this.state.editDisabled) ?
                     <input

@@ -6,11 +6,13 @@ import CourseService from "../../services/CourseService";
 class CoursesModalFormComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {course: {}, errors: {
+        this.state = {
+            course: {}, errors: {
                 title: '',
                 description: '',
-                datePublished: '',
-            }};
+                datePublished: ''
+            }
+        };
     }
 
     componentDidMount() {
@@ -46,42 +48,55 @@ class CoursesModalFormComponent extends React.Component {
         this.validateInput(name, value)
     }
 
-    validateInput(name, value){
+    validateInput(name, value) {
         let errors = this.state.errors;
 
         switch (name) {
             case 'title':
                 errors.title =
-                    value.length < 0
+                    value.length <= 0
                         ? 'The title is required!'
                         : '';
                 break;
             case 'description':
                 errors.description =
-                    value.length < 0
+                    value.length <= 0
                         ? 'The description is required!'
                         : '';
+                break;
+            case 'datePublished':
+                let date = new Date(value);
+                errors.datePublished = (date.getTime() < new Date().getTime() && !this.isToday(date)) ? 'The date cannot be before today!' : '';
                 break;
             default:
                 break;
         }
 
-        this.setState({errors, [name]: value}, ()=> {
+        this.setState({errors, [name]: value}, () => {
             console.log(errors)
         })
     }
 
-    formatDate(){
-       let d = new Date();
+
+    isToday = (someDate) => {
+        const today = new Date()
+        return someDate.getDate() === today.getDate() &&
+            someDate.getMonth() === today.getMonth() &&
+            someDate.getFullYear() === today.getFullYear()
+    }
+
+    formatDate() {
+        let d = new Date();
         let dt = d.getDate();
         let mn = d.getMonth();
         let yyyy = d.getFullYear();
         console.log((yyyy + "-" + mn + "-" + dt));
-        return (yyyy + "-" + (mn+1) + "-" + dt);
+        return (yyyy + "-" + (mn + 1) + "-" + dt);
     }
+
     submitFormHandler = event => {
         event.preventDefault();
-        if(!this.validateForm(this.state.errors)){
+        if (!this.validateForm(this.state.errors)) {
             return;
         }
 
@@ -115,7 +130,7 @@ class CoursesModalFormComponent extends React.Component {
                                    value={this.state.course.title}
                                    onChange={this.changeHandler} required={true}/>
                             {this.state.errors.title.length > 0 &&
-                            <span className='error'>{this.state.errors.title}</span>}
+                            <span className='text-danger'>{this.state.errors.title}</span>}
                         </div>
 
                         <div className="form-group">
@@ -128,7 +143,7 @@ class CoursesModalFormComponent extends React.Component {
                                       value={this.state.course.description}
                                       onChange={this.changeHandler} required={true}/>
                             {this.state.errors.description.length > 0 &&
-                            <span className='error'>{this.state.errors.description}</span>}
+                            <span className='text-danger'>{this.state.errors.description}</span>}
                         </div>
 
                         <div className="form-group">
@@ -139,6 +154,8 @@ class CoursesModalFormComponent extends React.Component {
                                    placeholder="Choose date"
                                    value={this.state.course.datePublished}
                                    onChange={this.changeHandler} required={true}/>
+                            {this.state.errors.datePublished.length > 0 &&
+                            <span className='text-danger'>{this.state.errors.datePublished}</span>}
                         </div>
 
                         <div className="form-group">
