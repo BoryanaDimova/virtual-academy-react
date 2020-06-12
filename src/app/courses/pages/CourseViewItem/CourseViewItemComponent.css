@@ -1,0 +1,30 @@
+.rating-list:hover{
+    color: darkgoldenrod;
+}
+
+.rating-list{
+    color: darkgoldenrod;
+    size: 15vh;
+    border: none;
+}
+
+img{
+    height: 35rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.desc{
+    margin: auto;
+    text-align: justify;
+    white-space: pre-wrap;
+}
+
+.title{
+    font-size: 26px;
+}
+
+.fa-pencil{
+    font-size: 20px;
+}

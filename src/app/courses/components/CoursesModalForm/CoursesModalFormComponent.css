@@ -1,0 +1,45 @@
+.close{
+    border: none;
+}
+
+.modal{
+    width: 100%;
+    display: initial !important;
+}
+.modal-content{
+    height: auto;
+    border-radius: 5px;
+    margin: 2% auto;
+    box-shadow: 0 9px 50px hsla(20, 67%, 75%, 0.31);
+    padding: 2%;
+    background-image: linear-gradient(to top, rgba(255,228,181, 0.4),  rgba(255, 218, 185, 0.4));
+    opacity: 0.9;
+}
+
+.modal-title {
+    font-size: 2.5rem !important;
+    font-family: 'Playfair Display', serif;
+    color: black;
+    margin: 2% auto 2% auto;
+    text-align: center;
+}
+
+.modal-footer.btn-group button {
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.05em;
+    background: transparent;
+    border: blanchedalmond;
+    font-family: 'Playfair Display', sans-serif;
+    font-style: italic;
+    color: black;
+}
+
+.modal-footer.btn-group button:active:focus {
+    background: transparent;
+    border: blanchedalmond;
+}
+
+.modal-footer.btn-group:last-child > button {
+    border-right: 0;
+}
